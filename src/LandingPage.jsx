@@ -55,7 +55,7 @@ const LandingPage = () => {
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-block mb-4 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-sm">
-            🚀 Launching December 1st, 2024
+            🚀 Launching December 1st, 2025
           </div>
           
           <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
@@ -99,7 +99,7 @@ const LandingPage = () => {
             </div>
             <div className="flex items-center gap-2">
               <Check className="text-green-400" size={16} />
-              50+ Agencies
+              Niche Targeting
             </div>
           </div>
         </div>
@@ -112,25 +112,25 @@ const LandingPage = () => {
             <div className="text-5xl font-bold text-white mb-2" style={{
               textShadow: '0 0 30px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 20, 147, 0.3)'
             }}>
-              500+
-            </div>
-            <div className="text-gray-400">Accounts Warmed</div>
-          </div>
-          <div>
-            <div className="text-5xl font-bold text-white mb-2" style={{
-              textShadow: '0 0 30px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 20, 147, 0.3)'
-            }}>
-              98%
-            </div>
-            <div className="text-gray-400">Success Rate</div>
-          </div>
-          <div>
-            <div className="text-5xl font-bold text-white mb-2" style={{
-              textShadow: '0 0 30px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 20, 147, 0.3)'
-            }}>
               5 Days
             </div>
-            <div className="text-gray-400">Average Time</div>
+            <div className="text-gray-400">Proven Warmup Method</div>
+          </div>
+          <div>
+            <div className="text-5xl font-bold text-white mb-2" style={{
+              textShadow: '0 0 30px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 20, 147, 0.3)'
+            }}>
+              100%
+            </div>
+            <div className="text-gray-400">Safe & Automated</div>
+          </div>
+          <div>
+            <div className="text-5xl font-bold text-white mb-2" style={{
+              textShadow: '0 0 30px rgba(255, 107, 53, 0.5), 0 0 60px rgba(255, 20, 147, 0.3)'
+            }}>
+              $75
+            </div>
+            <div className="text-gray-400">Starting Price</div>
           </div>
         </div>
       </section>
@@ -251,7 +251,7 @@ const LandingPage = () => {
             Ready to warm up your accounts?
           </h2>
           <p className="text-xl text-gray-400 mb-8">
-            Join 50+ agencies already using Warmup.ai
+            Join the waitlist for early access and launch day discounts
           </p>
           <button className="px-8 py-4 bg-brand-gradient rounded-lg font-semibold text-lg hover:shadow-glow transition">
             Get Started Today
@@ -272,7 +272,7 @@ const LandingPage = () => {
             <a href="#" className="hover:text-white transition">Contact</a>
           </div>
           <div className="text-sm text-gray-400">
-            © 2024 Warmup.ai. All rights reserved.
+            © 2025 Warmup.ai. All rights reserved.
           </div>
         </div>
       </footer>
