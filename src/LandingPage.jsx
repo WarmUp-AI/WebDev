@@ -67,7 +67,7 @@ const LandingPage = () => {
           </h1>
           
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Get your OnlyFans models' Instagram accounts algorithm-ready in 5 days.
+            Get your Instagram accounts algorithm-ready in 5 days.
             Safe, automated, and proven to work.
           </p>
 
