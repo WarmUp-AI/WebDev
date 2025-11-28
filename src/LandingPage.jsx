@@ -3,23 +3,40 @@ import { ArrowRight, Check, Flame, Target, TrendingUp, Zap } from 'lucide-react'
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(''); // 'success' or 'error'
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('');
     
-    // Send to Formspree (replace with your form ID)
-    fetch('https://formspree.io/f/YOUR_FORM_ID', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    })
-    .then(() => {
-      alert(`Thanks! We'll email you at ${email} when we launch Dec 1st!`);
-      setEmail('');
-    })
-    .catch(() => {
-      alert('Error! Please try again.');
-    });
+    try {
+      // Replace YOUR_FORM_ID with your actual Formspree form ID
+      const response = await fetch('https://formspree.io/f/xeobzvod', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          _subject: 'New Warmup.ai Waitlist Signup!',
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setEmail('');
+        // Reset success message after 5 seconds
+        setTimeout(() => setSubmitStatus(''), 5000);
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -71,21 +88,41 @@ const LandingPage = () => {
             Safe, automated, and proven to work.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex gap-4 max-w-md mx-auto mb-12">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="flex-1 px-6 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg focus:outline-none focus:border-brand-orange transition"
-              required
-            />
-            <button
-              type="submit"
-              className="px-8 py-4 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition flex items-center gap-2"
-            >
-              Join Waitlist <ArrowRight size={20} />
-            </button>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto mb-12">
+            <div className="flex gap-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="flex-1 px-6 py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg focus:outline-none focus:border-brand-orange transition"
+                required
+                disabled={isSubmitting}
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-8 py-4 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Joining...' : (
+                  <>
+                    Join Waitlist <ArrowRight size={20} />
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {submitStatus === 'success' && (
+              <div className="text-green-400 text-sm text-center">
+                🎉 Success! Check your email for confirmation.
+              </div>
+            )}
+            
+            {submitStatus === 'error' && (
+              <div className="text-red-400 text-sm text-center">
+                ❌ Oops! Something went wrong. Please try again.
+              </div>
+            )}
           </form>
 
           <div className="flex justify-center gap-8 text-sm text-gray-400">
