@@ -214,7 +214,7 @@ const LandingPage = () => {
             No hidden fees. Cancel anytime.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* One-Time */}
             <div className="p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
               <div className="text-sm text-brand-orange mb-2">ONE-TIME</div>
@@ -235,7 +235,27 @@ const LandingPage = () => {
               </button>
             </div>
 
-            {/* Growth */}
+            {/* Starter - NEW! */}
+            <div className="p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+              <div className="text-sm text-brand-orange mb-2">STARTER</div>
+              <div className="text-4xl font-bold mb-4">
+                $299
+                <span className="text-lg text-gray-400">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8">
+                {['5 accounts/month', 'Priority queue', 'Email support', 'Monthly reports', 'Cancel anytime'].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm">
+                    <Check className="text-green-400" size={16} />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <button className="w-full py-3 border border-white/20 rounded-lg hover:bg-white/5 transition">
+                Subscribe
+              </button>
+            </div>
+
+            {/* Growth - Popular */}
             <div className="p-8 bg-gradient-to-br from-brand-orange/10 to-brand-pink/10 backdrop-blur-md border-2 border-brand-orange rounded-xl relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-brand-gradient rounded-full text-xs font-semibold">
                 MOST POPULAR
