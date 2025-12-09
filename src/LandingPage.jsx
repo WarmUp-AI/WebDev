@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Flame, Target, TrendingUp, Zap } from 'lucide-react';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(''); // 'success' or 'error'
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  React.useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleCheckout = (plan) => {
+    navigate(`/signup?plan=${plan}`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,9 +73,17 @@ const LandingPage = () => {
           <div className="hidden md:flex gap-8">
             <a href="#how-it-works" className="hover:text-brand-orange transition">How It Works</a>
             <a href="#pricing" className="hover:text-brand-orange transition">Pricing</a>
-            <a href="#" className="hover:text-brand-orange transition">Login</a>
+            <button 
+              onClick={() => navigate(isLoggedIn ? '/dashboard' : '/login')}
+              className="hover:text-brand-orange transition"
+            >
+              {isLoggedIn ? 'Dashboard' : 'Login'}
+            </button>
           </div>
-          <button className="px-6 py-2 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition">
+          <button 
+            onClick={() => navigate('/signup')}
+            className="px-6 py-2 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition"
+          >
             Sign Up
           </button>
         </div>
@@ -214,9 +235,9 @@ const LandingPage = () => {
             No hidden fees. Cancel anytime.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* One-Time */}
-            <div className="p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+            <div className="p-8 bg-gradient-to-br from-brand-orange/10 to-brand-pink/10 backdrop-blur-md border-2 border-brand-orange/50 rounded-xl hover:border-brand-orange transition">
               <div className="text-sm text-brand-orange mb-2">ONE-TIME</div>
               <div className="text-4xl font-bold mb-4">
                 $75
@@ -230,13 +251,16 @@ const LandingPage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-3 border border-white/20 rounded-lg hover:bg-white/5 transition">
+              <button 
+                onClick={() => handleCheckout('one_time')}
+                className="w-full py-3 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition"
+              >
                 Get Started
               </button>
             </div>
 
-            {/* Starter - NEW! */}
-            <div className="p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
+            {/* Starter */}
+            <div className="p-8 bg-gradient-to-br from-brand-orange/10 to-brand-pink/10 backdrop-blur-md border-2 border-brand-orange/50 rounded-xl hover:border-brand-orange transition">
               <div className="text-sm text-brand-orange mb-2">STARTER</div>
               <div className="text-4xl font-bold mb-4">
                 $299
@@ -250,8 +274,11 @@ const LandingPage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-3 border border-white/20 rounded-lg hover:bg-white/5 transition">
-                Subscribe
+              <button 
+                onClick={() => handleCheckout('starter')}
+                className="w-full py-3 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition"
+              >
+                Get Started
               </button>
             </div>
 
@@ -273,29 +300,23 @@ const LandingPage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-3 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition">
-                Start Free Trial
+              <button 
+                onClick={() => handleCheckout('growth')}
+                className="w-full py-3 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition"
+              >
+                Get Started
               </button>
             </div>
 
-            {/* Scale */}
-            <div className="p-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
-              <div className="text-sm text-brand-pink mb-2">SCALE</div>
-              <div className="text-4xl font-bold mb-4">
-                $899
-                <span className="text-lg text-gray-400">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {['20 accounts/month', 'Highest priority', 'Real-time dashboard', 'Dedicated support', 'Account manager'].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm">
-                    <Check className="text-green-400" size={16} />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full py-3 border border-white/20 rounded-lg hover:bg-white/5 transition">
-                Contact Sales
-              </button>
+
+          </div>
+          
+          {/* Disclaimer */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <div className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg">
+              <p className="text-sm text-gray-400 text-center leading-relaxed">
+                <span className="text-brand-orange font-semibold">Important Notice:</span> While our service professionally warms up Instagram accounts following proven methodologies, we cannot guarantee specific reach or engagement outcomes. Instagram's algorithm behavior varies significantly between accounts, and a percentage of accounts may experience limited reach regardless of warming efforts. This is determined by Instagram's systems and is beyond our control. By using our service, you acknowledge that account performance depends on multiple factors including Instagram's platform changes, content quality, and algorithmic distribution.
+              </p>
             </div>
           </div>
         </div>
@@ -310,7 +331,10 @@ const LandingPage = () => {
           <p className="text-xl text-gray-400 mb-8">
             Join the waitlist for early access and launch day discounts
           </p>
-          <button className="px-8 py-4 bg-brand-gradient rounded-lg font-semibold text-lg hover:shadow-glow transition">
+          <button 
+            onClick={() => navigate('/signup')}
+            className="px-8 py-4 bg-brand-gradient rounded-lg font-semibold text-lg hover:shadow-glow transition"
+          >
             Get Started Today
           </button>
         </div>
