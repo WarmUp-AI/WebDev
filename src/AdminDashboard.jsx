@@ -637,15 +637,26 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
 };
 
 const CreateOrderModal = ({ onClose, onSubmit, users }) => {
+  const [createNewUser, setCreateNewUser] = useState(false);
   const [formData, setFormData] = useState({
     user_id: '',
+    email: '',
+    password: '',
     plan: 'one_time',
     payment_method: 'crypto'
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (createNewUser && (!formData.email || !formData.password)) {
+      alert('Email and password required for new user');
+      return;
+    }
+    if (!createNewUser && !formData.user_id) {
+      alert('Please select a user');
+      return;
+    }
+    onSubmit({ ...formData, create_new_user: createNewUser });
   };
 
   return (
@@ -654,20 +665,63 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
         <h2 className="text-2xl font-bold mb-6">Create Manual Order</h2>
         <p className="text-sm text-gray-400 mb-6">For crypto or offline payments</p>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Select User</label>
-            <select
-              value={formData.user_id}
-              onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-              required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
-            >
-              <option value="">Choose user...</option>
-              {users.filter(u => !u.is_admin).map(user => (
-                <option key={user.id} value={user.id}>{user.email}</option>
-              ))}
-            </select>
+          
+          <div className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10">
+            <input
+              type="checkbox"
+              id="createNewUser"
+              checked={createNewUser}
+              onChange={(e) => setCreateNewUser(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="createNewUser" className="text-sm font-medium cursor-pointer">
+              Create new user account
+            </label>
           </div>
+
+          {createNewUser ? (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+                  placeholder="customer@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={8}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+                  placeholder="Min 8 characters"
+                />
+              </div>
+            </>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium mb-2">Select Existing User</label>
+              <select
+                value={formData.user_id}
+                onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+                required={!createNewUser}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              >
+                <option value="">Choose user...</option>
+                {users.filter(u => !u.is_admin).map(user => (
+                  <option key={user.id} value={user.id}>{user.email}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-2">Plan</label>
@@ -701,7 +755,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
               type="submit"
               className="flex-1 px-6 py-3 bg-brand-gradient rounded-lg font-semibold hover:shadow-glow transition"
             >
-              Create Order
+              {createNewUser ? 'Create User & Order' : 'Create Order'}
             </button>
             <button
               type="button"

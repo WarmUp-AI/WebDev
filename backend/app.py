@@ -290,6 +290,24 @@ def create_manual_order(current_user):
     user_id = data.get('user_id')
     plan = data.get('plan')
     payment_method = data.get('payment_method', 'crypto')
+    create_new_user = data.get('create_new_user', False)
+    
+    # Create new user if requested
+    if create_new_user:
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password required for new user'}), 400
+        
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'User already exists'}), 400
+        
+        new_user = User(email=email, role='client')
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.flush()  # Get the user ID without committing
+        user_id = new_user.id
     
     if not user_id or plan not in ['one_time', 'starter', 'growth']:
         return jsonify({'error': 'Invalid request'}), 400
