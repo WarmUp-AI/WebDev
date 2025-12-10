@@ -308,9 +308,19 @@ def create_manual_order(current_user):
         db.session.add(new_user)
         db.session.flush()  # Get the user ID without committing
         user_id = new_user.id
+    else:
+        # Convert user_id to int if it's a string
+        if user_id:
+            try:
+                user_id = int(user_id)
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid user ID'}), 400
     
-    if not user_id or plan not in ['one_time', 'starter', 'growth']:
-        return jsonify({'error': 'Invalid request'}), 400
+    if not user_id:
+        return jsonify({'error': 'User ID is required'}), 400
+    
+    if plan not in ['one_time', 'starter', 'growth']:
+        return jsonify({'error': 'Invalid plan'}), 400
     
     amounts = {'one_time': 7500, 'starter': 29900, 'growth': 49900}
     order = Order(

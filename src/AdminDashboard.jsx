@@ -656,7 +656,15 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
       alert('Please select a user');
       return;
     }
-    onSubmit({ ...formData, create_new_user: createNewUser });
+    
+    // Parse user_id as integer if not creating new user
+    const submitData = { 
+      ...formData, 
+      create_new_user: createNewUser,
+      user_id: createNewUser ? null : parseInt(formData.user_id)
+    };
+    
+    onSubmit(submitData);
   };
 
   return (
