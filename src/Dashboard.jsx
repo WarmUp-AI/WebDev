@@ -280,6 +280,7 @@ const Dashboard = () => {
 const AddAccountModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     username: '',
+    password: '',
     niche: ''
   });
 
@@ -304,7 +305,7 @@ const AddAccountModal = ({ onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.niche) {
+    if (!formData.username || !formData.password || !formData.niche) {
       alert('Please fill in all fields');
       return;
     }
@@ -335,6 +336,23 @@ const AddAccountModal = ({ onClose, onSubmit }) => {
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">Don't include the @ symbol</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Instagram Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-brand-orange transition"
+              placeholder="••••••••"
+            />
+            <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <p className="text-xs text-yellow-200">
+                ⚠️ <strong>Important:</strong> Accounts with 2FA (two-factor authentication) won't work. Please disable 2FA first, or contact support for advanced setup.
+              </p>
+            </div>
           </div>
 
           <div>

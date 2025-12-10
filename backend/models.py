@@ -1,8 +1,37 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import bcrypt
+import os
+from cryptography.fernet import Fernet
 
 db = SQLAlchemy()
+
+# Password encryption for Instagram credentials
+def get_cipher():
+    """Get Fernet cipher for encrypting Instagram passwords"""
+    key = os.getenv('ENCRYPTION_KEY')
+    if not key:
+        # Generate a key if none exists (for development)
+        key = Fernet.generate_key().decode()
+        print(f"WARNING: No ENCRYPTION_KEY set. Generated temporary key: {key}")
+        print("Add this to your environment variables!")
+    else:
+        key = key.encode() if isinstance(key, str) else key
+    return Fernet(key)
+
+def encrypt_password(password):
+    """Encrypt Instagram password"""
+    if not password:
+        return None
+    cipher = get_cipher()
+    return cipher.encrypt(password.encode()).decode()
+
+def decrypt_password(encrypted_password):
+    """Decrypt Instagram password"""
+    if not encrypted_password:
+        return None
+    cipher = get_cipher()
+    return cipher.decrypt(encrypted_password.encode()).decode()
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -61,6 +90,7 @@ class Account(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
     username = db.Column(db.String(100), nullable=False)
+    encrypted_password = db.Column(db.Text)  # Encrypted Instagram password
     niche = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(20), default='pending')
     current_day = db.Column(db.Integer, default=0)

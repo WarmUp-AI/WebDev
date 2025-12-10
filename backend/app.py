@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import secrets
 
-from models import db, User, Order, Account
+from models import db, User, Order, Account, encrypt_password, decrypt_password
 from auth import generate_token, token_required, admin_required
 import stripe_api
 
@@ -156,10 +156,14 @@ def create_account(current_user):
     
     data = request.json
     username = data.get('username')
+    password = data.get('password')
     niche = data.get('niche')
     
     if not username or not niche:
         return jsonify({'error': 'Username and niche required'}), 400
+    
+    if not password:
+        return jsonify({'error': 'Password is required'}), 400
     
     # Clean username (remove @ if present)
     username = username.replace('@', '').strip()
@@ -169,7 +173,16 @@ def create_account(current_user):
     if existing:
         return jsonify({'error': 'This Instagram account is already added'}), 400
     
-    account = Account(user_id=current_user['user_id'], username=username, niche=niche, status='pending')
+    # Encrypt password
+    encrypted_pwd = encrypt_password(password)
+    
+    account = Account(
+        user_id=current_user['user_id'], 
+        username=username, 
+        encrypted_password=encrypted_pwd,
+        niche=niche, 
+        status='pending'
+    )
     db.session.add(account)
     db.session.commit()
     return jsonify(account.to_dict()), 201
