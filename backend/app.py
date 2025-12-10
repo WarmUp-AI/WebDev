@@ -149,11 +149,26 @@ def get_user_accounts(current_user):
 @app.route('/api/accounts', methods=['POST'])
 @token_required
 def create_account(current_user):
+    # Check if user has a paid order
+    paid_order = Order.query.filter_by(user_id=current_user['user_id'], status='paid').first()
+    if not paid_order:
+        return jsonify({'error': 'You need a paid order to add Instagram accounts'}), 403
+    
     data = request.json
     username = data.get('username')
     niche = data.get('niche')
+    
     if not username or not niche:
         return jsonify({'error': 'Username and niche required'}), 400
+    
+    # Clean username (remove @ if present)
+    username = username.replace('@', '').strip()
+    
+    # Check if account already exists
+    existing = Account.query.filter_by(user_id=current_user['user_id'], username=username).first()
+    if existing:
+        return jsonify({'error': 'This Instagram account is already added'}), 400
+    
     account = Account(user_id=current_user['user_id'], username=username, niche=niche, status='pending')
     db.session.add(account)
     db.session.commit()
