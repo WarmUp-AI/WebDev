@@ -44,7 +44,7 @@ const Signup = () => {
     setError('');
 
     // Use local backend for now (change to https://api.warm-up.me when deployed)
-    const API_URL = 'http://localhost:5000';
+    const API_URL = 'https://api.warm-up.me';
 
     try {
       // Create account with backend

@@ -11,7 +11,7 @@ const Success = () => {
     // Get user email from token
     const token = localStorage.getItem('token');
     if (token) {
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch('https://api.warm-up.me/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

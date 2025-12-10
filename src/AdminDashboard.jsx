@@ -14,7 +14,7 @@ const AdminDashboard = () => {
   const [editingAccount, setEditingAccount] = useState(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
 
-  const API_URL = 'http://localhost:5000';
+  const API_URL = 'https://api.warm-up.me';
 
   useEffect(() => {
     const token = localStorage.getItem('token');

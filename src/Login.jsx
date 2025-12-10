@@ -9,7 +9,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_URL = 'http://localhost:5000';
+  const API_URL = 'https://api.warm-up.me';
 
   const handleLogin = async (e) => {
     e.preventDefault();

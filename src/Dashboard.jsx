@@ -9,7 +9,7 @@ const Dashboard = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = 'http://localhost:5000';
+  const API_URL = 'https://api.warm-up.me';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
