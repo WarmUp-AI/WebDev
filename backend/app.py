@@ -268,6 +268,77 @@ def get_admin_stats(current_user):
         'completed_accounts': completed_accounts
     }), 200
 
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(current_user, user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user.role == 'admin':
+        return jsonify({'error': 'Cannot delete admin users'}), 403
+    # Delete associated accounts and orders
+    Account.query.filter_by(user_id=user_id).delete()
+    Order.query.filter_by(user_id=user_id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'User deleted'}), 200
+
+@app.route('/api/admin/orders/manual', methods=['POST'])
+@admin_required
+def create_manual_order(current_user):
+    data = request.json
+    user_id = data.get('user_id')
+    plan = data.get('plan')
+    payment_method = data.get('payment_method', 'crypto')
+    
+    if not user_id or plan not in ['one_time', 'starter', 'growth']:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    amounts = {'one_time': 7500, 'starter': 29900, 'growth': 49900}
+    order = Order(
+        user_id=user_id,
+        stripe_session_id=f'manual_{payment_method}_{secrets.token_hex(8)}',
+        plan=plan,
+        amount=amounts[plan],
+        status='paid'
+    )
+    db.session.add(order)
+    db.session.commit()
+    return jsonify(order.to_dict()), 201
+
+@app.route('/api/admin/change-password', methods=['POST'])
+@admin_required
+def change_admin_password(current_user):
+    data = request.json
+    new_password = data.get('new_password')
+    
+    if not new_password or len(new_password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+    
+    admin = User.query.get(current_user['user_id'])
+    admin.set_password(new_password)
+    db.session.commit()
+    return jsonify({'message': 'Password changed successfully'}), 200
+
+@app.route('/api/admin/users/create-admin', methods=['POST'])
+@admin_required
+def create_admin_user(current_user):
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'error': 'Email and password required'}), 400
+    
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'User already exists'}), 400
+    
+    admin = User(email=email, role='admin')
+    admin.set_password(password)
+    db.session.add(admin)
+    db.session.commit()
+    return jsonify(admin.to_dict()), 201
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'ok'}), 200
