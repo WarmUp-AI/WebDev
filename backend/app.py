@@ -19,6 +19,22 @@ CORS(app)
 
 with app.app_context():
     db.create_all()
+    
+    # Auto-migration: Add encrypted_password column if it doesn't exist
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    columns = [col['name'] for col in inspector.get_columns('accounts')]
+    
+    if 'encrypted_password' not in columns:
+        try:
+            db.session.execute(text('ALTER TABLE accounts ADD COLUMN encrypted_password TEXT'))
+            db.session.commit()
+            print("✅ Auto-migration: Added encrypted_password column")
+        except Exception as e:
+            print(f"⚠️  Migration warning: {e}")
+            db.session.rollback()
+    
+    # Create admin user if not exists
     admin = User.query.filter_by(email='admin@warmup.ai').first()
     if not admin:
         admin = User(email='admin@warmup.ai', role='admin')
