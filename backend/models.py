@@ -90,6 +90,7 @@ class Account(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
     username = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120))  # Instagram email (optional)
     encrypted_password = db.Column(db.Text)  # Encrypted Instagram password
     niche = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(20), default='pending')

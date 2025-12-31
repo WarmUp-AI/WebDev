@@ -562,6 +562,8 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
   const [formData, setFormData] = useState({
     user_id: '',
     username: '',
+    email: '',
+    password: '',
     niche: '',
     status: 'pending'
   });
@@ -600,6 +602,29 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               required
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
               placeholder="username"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Instagram Email <span className="text-gray-400">(optional)</span></label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              placeholder="instagram@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Instagram Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              placeholder="••••••••"
             />
           </div>
 

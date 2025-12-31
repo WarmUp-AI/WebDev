@@ -260,9 +260,17 @@ def update_account_status(current_user, account_id):
 @admin_required
 def admin_create_account(current_user):
     data = request.json
+    
+    # Encrypt Instagram password if provided
+    encrypted_password = None
+    if data.get('password'):
+        encrypted_password = encrypt_password(data['password'])
+    
     account = Account(
         user_id=data['user_id'],
         username=data['username'],
+        email=data.get('email'),  # Instagram email (optional)
+        encrypted_password=encrypted_password,  # Encrypted Instagram password
         niche=data.get('niche', 'general'),
         status=data.get('status', 'pending'),
         current_day=data.get('current_day', 0),
