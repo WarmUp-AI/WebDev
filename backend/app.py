@@ -290,6 +290,24 @@ def admin_create_account(current_user):
     db.session.commit()
     return jsonify(account.to_dict()), 201
 
+@app.route('/api/admin/accounts/<int:account_id>/password', methods=['GET'])
+@admin_required
+def get_account_password(current_user, account_id):
+    """Decrypt and return Instagram password for admin viewing"""
+    account = Account.query.get(account_id)
+    if not account:
+        return jsonify({'error': 'Account not found'}), 404
+    
+    if not account.encrypted_password:
+        return jsonify({'password': None}), 200
+    
+    try:
+        decrypted_password = decrypt_password(account.encrypted_password)
+        return jsonify({'password': decrypted_password}), 200
+    except Exception as e:
+        print(f"Error decrypting password: {e}")
+        return jsonify({'error': 'Failed to decrypt password'}), 500
+
 @app.route('/api/admin/accounts/<int:account_id>', methods=['DELETE'])
 @admin_required
 def delete_account(current_user, account_id):

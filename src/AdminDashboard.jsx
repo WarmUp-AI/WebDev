@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Users, ShoppingBag, Instagram, Plus, Edit, Trash2, Search, Key, UserPlus, DollarSign } from 'lucide-react';
+import { LogOut, Users, ShoppingBag, Instagram, Plus, Edit, Trash2, Search, Key, UserPlus, DollarSign, Eye, EyeOff, Copy } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -16,6 +16,8 @@ const AdminDashboard = () => {
   const [showCreateOrder, setShowCreateOrder] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [viewingPassword, setViewingPassword] = useState({});
+  const [decryptedPasswords, setDecryptedPasswords] = useState({});
 
   const API_URL = 'https://api.warm-up.me';
 
@@ -222,6 +224,35 @@ const AdminDashboard = () => {
       console.error('Error creating admin:', err);
       alert('Error creating admin');
     }
+  };
+
+  const viewPassword = async (accountId) => {
+    if (decryptedPasswords[accountId]) {
+      setViewingPassword({ ...viewingPassword, [accountId]: !viewingPassword[accountId] });
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`${API_URL}/api/admin/accounts/${accountId}/password`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.password) {
+        setDecryptedPasswords({ ...decryptedPasswords, [accountId]: data.password });
+        setViewingPassword({ ...viewingPassword, [accountId]: true });
+      } else {
+        alert('No password found for this account');
+      }
+    } catch (err) {
+      console.error('Error fetching password:', err);
+      alert('Error fetching password');
+    }
+  };
+
+  const copyPassword = (password) => {
+    navigator.clipboard.writeText(password);
+    alert('Password copied to clipboard!');
   };
 
   const getStatusColor = (status) => {
@@ -444,8 +475,32 @@ const AdminDashboard = () => {
                       {account.current_day && (
                         <div className="text-xs text-gray-500 mt-1">Day {account.current_day}/5</div>
                       )}
+                      {viewingPassword[account.id] && decryptedPasswords[account.id] && (
+                        <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="text-xs text-gray-400 mb-1">Instagram Password:</div>
+                              <div className="font-mono text-sm text-green-400">{decryptedPasswords[account.id]}</div>
+                            </div>
+                            <button
+                              onClick={() => copyPassword(decryptedPasswords[account.id])}
+                              className="p-2 hover:bg-white/10 rounded transition"
+                              title="Copy password"
+                            >
+                              <Copy size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => viewPassword(account.id)}
+                        className="p-2 hover:bg-white/10 rounded transition"
+                        title={viewingPassword[account.id] ? "Hide password" : "View password"}
+                      >
+                        {viewingPassword[account.id] ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                       {editingAccount === account.id ? (
                         <div className="space-y-2">
                           <select
