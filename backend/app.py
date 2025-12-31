@@ -34,6 +34,16 @@ with app.app_context():
             print(f"⚠️  Migration warning: {e}")
             db.session.rollback()
     
+    # Auto-migration: Add email column if it doesn't exist
+    if 'email' not in columns:
+        try:
+            db.session.execute(text('ALTER TABLE accounts ADD COLUMN email VARCHAR(120)'))
+            db.session.commit()
+            print("✅ Auto-migration: Added email column")
+        except Exception as e:
+            print(f"⚠️  Migration warning: {e}")
+            db.session.rollback()
+    
     # Create admin user if not exists
     admin = User.query.filter_by(email='admin@warmup.ai').first()
     if not admin:
