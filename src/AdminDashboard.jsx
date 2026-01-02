@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Users, ShoppingBag, Instagram, Plus, Edit, Trash2, Search, Key, UserPlus, DollarSign, Eye, EyeOff, Copy } from 'lucide-react';
+import { LogOut, Users, ShoppingBag, Instagram, Plus, Edit, Trash2, Search, Key, UserPlus, DollarSign, Eye, EyeOff, Copy, AlertCircle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,8 +18,14 @@ const AdminDashboard = () => {
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [viewingPassword, setViewingPassword] = useState({});
   const [decryptedPasswords, setDecryptedPasswords] = useState({});
+  const [showSetupSection, setShowSetupSection] = useState(true);
 
   const API_URL = 'https://api.warm-up.me';
+
+  // Get accounts that need setup
+  const accountsNeedingSetup = accounts.filter(acc => 
+    acc.status === 'pending' || acc.status === 'pending_setup'
+  );
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -109,16 +115,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const markAccountAsReady = async (accountId) => {
+    await updateAccountStatus(accountId, { status: 'ready' });
+    alert('Account marked as ready! Bot will pick it up automatically.');
+  };
+
   const addAccount = async (accountData) => {
     const token = localStorage.getItem('token');
     try {
+      // Default to pending_setup status for new accounts
+      const dataWithStatus = {
+        ...accountData,
+        status: 'pending_setup'
+      };
+      
       await fetch(`${API_URL}/api/admin/accounts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(accountData)
+        body: JSON.stringify(dataWithStatus)
       });
       loadData();
       setShowAddAccount(false);
@@ -258,10 +275,13 @@ const AdminDashboard = () => {
   const getStatusColor = (status) => {
     const colors = {
       'pending': 'text-yellow-400',
+      'pending_setup': 'text-orange-400',
+      'ready': 'text-blue-400',
       'paid': 'text-green-400',
-      'warming': 'text-blue-400',
+      'warming': 'text-purple-400',
       'completed': 'text-green-400',
-      'failed': 'text-red-400'
+      'failed': 'text-red-400',
+      'paused': 'text-gray-400'
     };
     return colors[status] || 'text-gray-400';
   };
@@ -330,6 +350,85 @@ const AdminDashboard = () => {
       </nav>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+        {/* Setup Accounts Alert Banner */}
+        {accountsNeedingSetup.length > 0 && (
+          <div className="mb-8 p-6 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-xl">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4 flex-1">
+                <AlertCircle className="text-orange-400 mt-1" size={24} />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-orange-400 mb-2">
+                    {accountsNeedingSetup.length} Account{accountsNeedingSetup.length !== 1 ? 's' : ''} Need Setup
+                  </h3>
+                  <p className="text-sm text-gray-300 mb-4">
+                    These accounts need manual Chrome profile setup before the bot can run them.
+                  </p>
+                  <button
+                    onClick={() => setShowSetupSection(!showSetupSection)}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 rounded-lg transition text-sm font-medium"
+                  >
+                    {showSetupSection ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {showSetupSection ? 'Hide' : 'View'} Accounts
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Expandable Setup Accounts List */}
+            {showSetupSection && (
+              <div className="mt-6 space-y-3">
+                {accountsNeedingSetup.map(account => (
+                  <div key={account.id} className="p-4 bg-black/40 rounded-lg border border-white/10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="text-lg font-semibold">@{account.username}</div>
+                        <div className="text-sm text-gray-400">{account.user_email}</div>
+                        <div className="text-sm text-gray-500 mt-1 capitalize">Niche: {account.niche}</div>
+                        <div className="text-xs text-orange-400 mt-2">
+                          ⚠️ Run: <code className="px-2 py-1 bg-white/5 rounded">python3 initialize_account.py {account.username}</code>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => viewPassword(account.id)}
+                          className="p-2 hover:bg-white/10 rounded transition"
+                          title="View password for manual login"
+                        >
+                          {viewingPassword[account.id] ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                        <button
+                          onClick={() => markAccountAsReady(account.id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50 rounded-lg transition font-medium"
+                        >
+                          <CheckCircle size={16} />
+                          Mark as Ready
+                        </button>
+                      </div>
+                    </div>
+                    {viewingPassword[account.id] && decryptedPasswords[account.id] && (
+                      <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1">
+                            <div className="text-xs text-gray-400 mb-1">Instagram Password:</div>
+                            <div className="font-mono text-sm text-green-400">{decryptedPasswords[account.id]}</div>
+                          </div>
+                          <button
+                            onClick={() => copyPassword(decryptedPasswords[account.id])}
+                            className="p-2 hover:bg-white/10 rounded transition"
+                            title="Copy password"
+                          >
+                            <Copy size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl">
             <div className="flex items-center gap-3 mb-2">
@@ -473,7 +572,7 @@ const AdminDashboard = () => {
                       <div className="text-sm text-gray-400">{account.user_email}</div>
                       <div className="text-sm text-gray-500 mt-1 capitalize">Niche: {account.niche}</div>
                       {account.current_day && (
-                        <div className="text-xs text-gray-500 mt-1">Day {account.current_day}/5</div>
+                        <div className="text-xs text-gray-500 mt-1">Day {account.current_day}/5 • {account.progress_percentage}% complete</div>
                       )}
                       {viewingPassword[account.id] && decryptedPasswords[account.id] && (
                         <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10">
@@ -508,7 +607,8 @@ const AdminDashboard = () => {
                             onChange={(e) => updateAccountStatus(account.id, { status: e.target.value })}
                             className="px-3 py-1 bg-white/10 border border-white/20 rounded text-sm w-full"
                           >
-                            <option value="pending">Pending</option>
+                            <option value="pending_setup">Pending Setup</option>
+                            <option value="ready">Ready</option>
                             <option value="warming">Warming</option>
                             <option value="completed">Completed</option>
                             <option value="paused">Paused</option>
@@ -524,7 +624,7 @@ const AdminDashboard = () => {
                         <>
                           <span className={`px-3 py-1 bg-white/10 rounded text-sm capitalize flex items-center ${getStatusColor(account.status)}`}>
                             {getStatusIcon(account.status)}
-                            {account.status}
+                            {account.status.replace('_', ' ')}
                           </span>
                           <button
                             onClick={() => setEditingAccount(account.id)}
@@ -619,8 +719,7 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
     username: '',
     email: '',
     password: '',
-    niche: '',
-    status: 'pending'
+    niche: ''
   });
 
   const handleSubmit = (e) => {
@@ -639,7 +738,7 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               value={formData.user_id}
               onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
             >
               <option value="">Choose user...</option>
               {users.filter(u => !u.is_admin).map(user => (
@@ -655,7 +754,7 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="username"
             />
           </div>
@@ -666,7 +765,7 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="instagram@email.com"
             />
           </div>
@@ -678,7 +777,7 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="••••••••"
             />
           </div>
@@ -690,9 +789,15 @@ const AddAccountModal = ({ onClose, onSubmit, users }) => {
               value={formData.niche}
               onChange={(e) => setFormData({ ...formData, niche: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="e.g., fitness, tech, crypto"
             />
+          </div>
+
+          <div className="p-3 bg-orange-500/20 border border-orange-500/50 rounded-lg">
+            <p className="text-sm text-orange-300">
+              💡 Account will be created with status "Pending Setup". You'll need to manually create the Chrome profile before marking it as Ready.
+            </p>
           </div>
 
           <div className="flex gap-4 pt-4">
@@ -776,7 +881,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
                   placeholder="customer@example.com"
                 />
               </div>
@@ -789,7 +894,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   minLength={8}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
                   placeholder="Min 8 characters"
                 />
               </div>
@@ -801,7 +906,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
                 value={formData.user_id}
                 onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
                 required={!createNewUser}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               >
                 <option value="">Choose user...</option>
                 {users.filter(u => !u.is_admin).map(user => (
@@ -816,7 +921,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
             <select
               value={formData.plan}
               onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
             >
               <option value="one_time">One-Time ($75)</option>
               <option value="starter">Starter ($299/mo)</option>
@@ -829,7 +934,7 @@ const CreateOrderModal = ({ onClose, onSubmit, users }) => {
             <select
               value={formData.payment_method}
               onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
             >
               <option value="crypto">Crypto</option>
               <option value="bank_transfer">Bank Transfer</option>
@@ -896,7 +1001,7 @@ const ChangePasswordModal = ({ onClose, onSubmit }) => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="At least 8 characters"
             />
           </div>
@@ -908,7 +1013,7 @@ const ChangePasswordModal = ({ onClose, onSubmit }) => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="Re-enter password"
             />
           </div>
@@ -973,7 +1078,7 @@ const CreateAdminModal = ({ onClose, onSubmit }) => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="admin@example.com"
             />
           </div>
@@ -986,7 +1091,7 @@ const CreateAdminModal = ({ onClose, onSubmit }) => {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
               minLength={8}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="At least 8 characters"
             />
           </div>
@@ -998,7 +1103,7 @@ const CreateAdminModal = ({ onClose, onSubmit }) => {
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               required
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none text-white"
               placeholder="Re-enter password"
             />
           </div>

@@ -32,7 +32,7 @@ const AdminLogin = () => {
         });
         const userData = await meResponse.json();
 
-        if (userData.is_admin) {
+        if (userData.role === 'admin') {
           localStorage.setItem('token', data.token);
           navigate('/admin');
         } else {
