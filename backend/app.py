@@ -219,6 +219,99 @@ def get_user_orders(current_user):
     orders = Order.query.filter_by(user_id=current_user['user_id']).all()
     return jsonify([order.to_dict() for order in orders]), 200
 
+# WARMUP CONTROL ENDPOINTS
+@app.route('/api/accounts/<int:account_id>/activate', methods=['PUT'])
+@token_required
+def activate_warmup(current_user, account_id):
+    """Activate warmup for an account - changes status from 'ready' to 'warming'"""
+    account = Account.query.get_or_404(account_id)
+
+    # Verify user owns this account
+    if account.user_id != current_user['user_id'] and current_user['role'] != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Check account is ready
+    if account.status != 'ready':
+        return jsonify({'error': f'Account must be ready to start warmup. Current status: {account.status}'}), 400
+
+    # Activate warmup
+    account.status = 'warming'
+    if not account.started_at:
+        account.started_at = datetime.utcnow()
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Automated 5-day warmup activated! The system will handle everything automatically with smart timing.',
+        'details': {
+            'days': 5,
+            'automated': True,
+            'smart_timing': True,
+            'sessions_per_day': '2-3 (varies by day)',
+            'zero_intervention_required': True
+        },
+        'account': account.to_dict()
+    }), 200
+
+@app.route('/api/accounts/<int:account_id>/progress', methods=['GET'])
+@token_required
+def get_account_progress(current_user, account_id):
+    """Get detailed progress for an account"""
+    account = Account.query.get_or_404(account_id)
+
+    # Verify user owns this account
+    if account.user_id != current_user['user_id'] and current_user['role'] != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Calculate estimated completion
+    estimated_completion = None
+    if account.started_at and account.status == 'warming':
+        # Rough estimate: 5 days of warmup
+        from datetime import timedelta
+        days_remaining = 5 - (account.current_day or 0)
+        if days_remaining > 0:
+            estimated_completion = (account.started_at + timedelta(days=5)).isoformat()
+
+    return jsonify({
+        'id': account.id,
+        'username': account.username,
+        'status': account.status,
+        'current_day': account.current_day or 0,
+        'progress_percentage': account.progress_percentage or 0,
+        'reels_viewed': account.reels_viewed or 0,
+        'accounts_followed': account.accounts_followed or 0,
+        'comments_left': account.comments_left or 0,
+        'started_at': account.started_at.isoformat() if account.started_at else None,
+        'completed_at': account.completed_at.isoformat() if account.completed_at else None,
+        'estimated_completion': estimated_completion
+    }), 200
+
+@app.route('/api/accounts/<int:account_id>/pause', methods=['PUT'])
+@token_required
+def pause_warmup(current_user, account_id):
+    """Pause warmup for an account - changes status from 'warming' to 'ready'"""
+    account = Account.query.get_or_404(account_id)
+
+    # Verify user owns this account
+    if account.user_id != current_user['user_id'] and current_user['role'] != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Check account is warming
+    if account.status != 'warming':
+        return jsonify({'error': f'Can only pause accounts that are warming. Current status: {account.status}'}), 400
+
+    # Pause warmup
+    account.status = 'ready'
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Warmup paused. You can resume later.',
+        'account': account.to_dict()
+    }), 200
+
 # ADMIN ROUTES
 @app.route('/api/admin/users', methods=['GET'])
 @admin_required
